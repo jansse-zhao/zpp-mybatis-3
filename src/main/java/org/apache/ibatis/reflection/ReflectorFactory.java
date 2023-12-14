@@ -15,11 +15,23 @@
  */
 package org.apache.ibatis.reflection;
 
+/**
+ * 反射器工厂
+ */
 public interface ReflectorFactory {
 
-  boolean isClassCacheEnabled();
+	/**
+	 * 类缓存是否开启
+	 */
+	boolean isClassCacheEnabled();
 
-  void setClassCacheEnabled(boolean classCacheEnabled);
+	/**
+	 * 设置类缓存开启状态
+	 */
+	void setClassCacheEnabled(boolean classCacheEnabled);
 
-  Reflector findForClass(Class<?> type);
+	/**
+	 * 通过class对象查找反射器
+	 */
+	Reflector findForClass(Class<?> type);
 }
