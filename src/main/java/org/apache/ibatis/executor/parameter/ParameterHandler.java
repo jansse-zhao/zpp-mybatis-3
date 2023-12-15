@@ -20,6 +20,8 @@ import java.sql.SQLException;
 
 /**
  * A parameter handler sets the parameters of the {@code PreparedStatement}.
+ * <p>
+ * PreparedStatement的参数处理器
  *
  * @author Clinton Begin
  */

@@ -30,6 +30,10 @@ public class GenericTokenParser {
     this.handler = handler;
   }
 
+  /**
+   * @description 解析SQL中参数变量主力军
+   * 1. 调用地方org.apache.ibatis.builder.SqlSourceBuilder.parse，openToken="#{",closeToken="}",handler="ParameterMappingTokenHandler"
+   */
   public String parse(String text) {
     if (text == null || text.isEmpty()) {
       return "";
@@ -44,11 +48,14 @@ public class GenericTokenParser {
     final StringBuilder builder = new StringBuilder();
     StringBuilder expression = null;
     do {
-      if (start > 0 && src[start - 1] == '\\') {
+      // 判断存在openToken，并且openToken前是否有反斜杠，有则删除反斜杠
+      if (start > 0 && src[ start - 1 ] == '\\') {
         // this open token is escaped. remove the backslash and continue.
         builder.append(src, offset, start - offset - 1).append(openToken);
         offset = start + openToken.length();
-      } else {
+      }
+      // 若不存在openToken或者openToken前没有反斜杠
+      else {
         // found open token. let's search close token.
         if (expression == null) {
           expression = new StringBuilder();
@@ -59,7 +66,7 @@ public class GenericTokenParser {
         offset = start + openToken.length();
         int end = text.indexOf(closeToken, offset);
         while (end > -1) {
-          if ((end <= offset) || (src[end - 1] != '\\')) {
+          if ((end <= offset) || (src[ end - 1 ] != '\\')) {
             expression.append(src, offset, end - offset);
             break;
           }
@@ -77,6 +84,7 @@ public class GenericTokenParser {
           offset = end + closeToken.length();
         }
       }
+      // 从偏移量位置开始往后继续查找是否有openToken
       start = text.indexOf(openToken, offset);
     } while (start > -1);
     if (offset < src.length) {

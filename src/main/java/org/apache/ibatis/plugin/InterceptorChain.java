@@ -21,24 +21,28 @@ import java.util.List;
 
 /**
  * @author Clinton Begin
+ * 拦截器链
+ * mybatis没有提供默认的拦截器
  */
 public class InterceptorChain {
 
-  private final List<Interceptor> interceptors = new ArrayList<>();
+	// 该集合包含用户通过<plugins>标签配置的拦截器
+	private final List<Interceptor> interceptors = new ArrayList<>();
 
-  public Object pluginAll(Object target) {
-    for (Interceptor interceptor : interceptors) {
-      target = interceptor.plugin(target);
-    }
-    return target;
-  }
+	// 如果系统配置了拦截器，则将需要拦截的对象使用jdk动态代理进行一层包装
+	public Object pluginAll(Object target) {
+		for (Interceptor interceptor : interceptors) {
+			target = interceptor.plugin(target);
+		}
+		return target;
+	}
 
-  public void addInterceptor(Interceptor interceptor) {
-    interceptors.add(interceptor);
-  }
+	public void addInterceptor(Interceptor interceptor) {
+		interceptors.add(interceptor);
+	}
 
-  public List<Interceptor> getInterceptors() {
-    return Collections.unmodifiableList(interceptors);
-  }
+	public List<Interceptor> getInterceptors() {
+		return Collections.unmodifiableList(interceptors);
+	}
 
 }

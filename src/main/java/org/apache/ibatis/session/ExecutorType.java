@@ -19,11 +19,17 @@ package org.apache.ibatis.session;
  * @author Clinton Begin
  */
 public enum ExecutorType {
+	/**
+	 * 1. 在org.apache.ibatis.session.Configuration.newExecutor()中使用
+	 */
 
-  SIMPLE,
+	// 简单执行器，对应SimpleExecutor
+	SIMPLE,
 
-  REUSE,
+	// 可复用的执行器，对应ReuseExecutor
+	REUSE,
 
-  BATCH
+	// 批处理的执行器，对应BatchExecutor
+	BATCH
 
 }

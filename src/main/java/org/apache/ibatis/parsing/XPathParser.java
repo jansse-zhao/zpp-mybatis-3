@@ -38,6 +38,7 @@ import java.util.Properties;
 /**
  * @author Clinton Begin
  * @author Kazuki Shimizu
+ * 封装xml document和xpath，提供一些eval*()方法进行解析xml文档，例如：evalString、evalBoolean、evalNode等用于解析xml对应类型的值
  */
 public class XPathParser {
 
@@ -45,6 +46,25 @@ public class XPathParser {
 	private boolean validation;
 	private EntityResolver entityResolver;
 	private Properties variables;
+	/**
+	 * xpath使用路径表达式的方式来选择xml文档中的节点，与常见的URL路径类似：
+	 */
+	// 表达式           含义
+	// nodename        选取指定节点的所有子节点
+	// /               从根节点选取指定节点
+	// //              根据指定的表达式，在整个文档中选取匹配的节点，这里不会考虑匹配节点在文档中的位置
+	// .               选取当前节点
+	// ..              选取当前节点的父节点
+	// @               选取属性
+	// *               匹配任何元素节点
+	// @*              匹配任何属性节点
+	// node()          匹配任何类型的节点
+	// text()          匹配文本节点
+	// |               选取若干个路径
+	// []              指定某个条件，用于查找某个特定节点或包含某个指定值的节点
+
+	// simple表达式：xpath.compile("//properties[recourse='db.property']/property")
+	// XPathConstants用来指定xpath解析结果类型
 	private XPath xpath;
 
 	public XPathParser(String xml) {
@@ -228,6 +248,8 @@ public class XPathParser {
 	private Document createDocument(InputSource inputSource) {
 		// important: this must only be called AFTER common constructor
 		try {
+			// 使用javax.xml解析xml文档，将org/apache/ibatis/builder/xml/mybatis-3-config.dtd和org/apache/ibatis/builder/xml/mybatis-3-mapper.dtd
+			// 解析成org.w3c.dom.Document类型的document文档
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
 			factory.setValidating(validation);

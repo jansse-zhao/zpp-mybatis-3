@@ -15,5 +15,7 @@
  */
 /**
  * Reflection utils.
+ * <p>
+ * 基础组件---反射组件
  */
 package org.apache.ibatis.reflection;

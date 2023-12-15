@@ -45,6 +45,8 @@ import java.util.Properties;
 /**
  * @author Clinton Begin
  * @author Kazuki Shimizu
+ * <p>
+ * 主要用来解析mybatis.xml配置信息
  */
 public class XMLConfigBuilder extends BaseBuilder {
 
@@ -73,7 +75,7 @@ public class XMLConfigBuilder extends BaseBuilder {
 	}
 
 	public XMLConfigBuilder(Class<? extends Configuration> configClass, Reader reader, String environment,
-	                        Properties props) {
+							Properties props) {
 		this(configClass, new XPathParser(reader, true, props, new XMLMapperEntityResolver()), environment, props);
 	}
 
@@ -94,7 +96,7 @@ public class XMLConfigBuilder extends BaseBuilder {
 	}
 
 	public XMLConfigBuilder(Class<? extends Configuration> configClass, InputStream inputStream, String environment,
-	                        Properties props) {
+							Properties props) {
 		this(configClass, new XPathParser(inputStream, true, props, new XMLMapperEntityResolver()), environment, props);
 	}
 
@@ -106,7 +108,7 @@ public class XMLConfigBuilder extends BaseBuilder {
 	 * 4. environment和props可能为空
 	 */
 	private XMLConfigBuilder(Class<? extends Configuration> configClass, XPathParser parser, String environment,
-	                         Properties props) {
+							 Properties props) {
 		// 通过反射构造一个Configuration对象传递给父类
 		super(newConfig(configClass));
 		ErrorContext.instance().resource("SQL Mapper Configuration");
@@ -141,6 +143,7 @@ public class XMLConfigBuilder extends BaseBuilder {
 			loadCustomLogImpl(settings);
 			// 解析配置文件中typeAliases属性下的值
 			typeAliasesElement(root.evalNode("typeAliases"));
+			// 配置插件
 			pluginsElement(root.evalNode("plugins"));
 			objectFactoryElement(root.evalNode("objectFactory"));
 			objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
