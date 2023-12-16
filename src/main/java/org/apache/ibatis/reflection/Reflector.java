@@ -38,7 +38,15 @@ import java.util.Map.Entry;
  */
 public class Reflector {
 
+	/**
+	 * MethodHandle方法句柄，用于检查对应类<type>中是否是record修饰的类
+	 * record类是jdk14后才出现的新的定义类的关键字
+	 */
 	private static final MethodHandle isRecordMethodHandle = getIsRecordMethodHandle();
+
+	/**
+	 * 构造器对象持有的指定类对象
+	 */
 	private final Class<?> type;
 	private final String[] readablePropertyNames;
 	private final String[] writablePropertyNames;
@@ -46,12 +54,16 @@ public class Reflector {
 	private final Map<String, Invoker> getMethods = new HashMap<>();
 	private final Map<String, Class<?>> setTypes = new HashMap<>();
 	private final Map<String, Class<?>> getTypes = new HashMap<>();
+	/**
+	 * 持有给定类type的默认构造函数
+	 */
 	private Constructor<?> defaultConstructor;
 
 	private final Map<String, String> caseInsensitivePropertyMap = new HashMap<>();
 
 	public Reflector(Class<?> clazz) {
 		type = clazz;
+		// 将clazz对象的默认构造函数赋值给defaultConstructor
 		addDefaultConstructor(clazz);
 		Method[] classMethods = getClassMethods(clazz);
 		if (isRecord(type)) {
@@ -61,8 +73,8 @@ public class Reflector {
 			addSetMethods(classMethods);
 			addFields(clazz);
 		}
-		readablePropertyNames = getMethods.keySet().toArray(new String[ 0 ]);
-		writablePropertyNames = setMethods.keySet().toArray(new String[ 0 ]);
+		readablePropertyNames = getMethods.keySet().toArray(new String[0]);
+		writablePropertyNames = setMethods.keySet().toArray(new String[0]);
 		for (String propName : readablePropertyNames) {
 			caseInsensitivePropertyMap.put(propName.toUpperCase(Locale.ENGLISH), propName);
 		}
@@ -154,7 +166,7 @@ public class Reflector {
 			boolean isSetterAmbiguous = false;
 			Method match = null;
 			for (Method setter : setters) {
-				if (!isGetterAmbiguous && setter.getParameterTypes()[ 0 ].equals(getterType)) {
+				if (!isGetterAmbiguous && setter.getParameterTypes()[0].equals(getterType)) {
 					// should be the best match
 					match = setter;
 					break;
@@ -174,8 +186,8 @@ public class Reflector {
 		if (setter1 == null) {
 			return setter2;
 		}
-		Class<?> paramType1 = setter1.getParameterTypes()[ 0 ];
-		Class<?> paramType2 = setter2.getParameterTypes()[ 0 ];
+		Class<?> paramType1 = setter1.getParameterTypes()[0];
+		Class<?> paramType2 = setter2.getParameterTypes()[0];
 		if (paramType1.isAssignableFrom(paramType2)) {
 			return setter2;
 		}
@@ -188,7 +200,7 @@ public class Reflector {
 						setter2.getDeclaringClass().getName(), paramType1.getName(), paramType2.getName()));
 		setMethods.put(property, invoker);
 		Type[] paramTypes = TypeParameterResolver.resolveParamTypes(setter1, type);
-		setTypes.put(property, typeToClass(paramTypes[ 0 ]));
+		setTypes.put(property, typeToClass(paramTypes[0]));
 		return null;
 	}
 
@@ -196,7 +208,7 @@ public class Reflector {
 		MethodInvoker invoker = new MethodInvoker(method);
 		setMethods.put(name, invoker);
 		Type[] paramTypes = TypeParameterResolver.resolveParamTypes(method, type);
-		setTypes.put(name, typeToClass(paramTypes[ 0 ]));
+		setTypes.put(name, typeToClass(paramTypes[0]));
 	}
 
 	private Class<?> typeToClass(Type src) {
@@ -267,15 +279,19 @@ public class Reflector {
 	 *
 	 * @param clazz The class
 	 * @return An array containing all methods in this class
+	 * <p>
+	 * 用于获取类直接定义的方法、类接口定义的方法、父类定义的方法数组
 	 */
 	private Method[] getClassMethods(Class<?> clazz) {
 		Map<String, Method> uniqueMethods = new HashMap<>();
 		Class<?> currentClass = clazz;
 		while (currentClass != null && currentClass != Object.class) {
+			// 生成类所有方法的方法签名，并放入uniqueMethods
 			addUniqueMethods(uniqueMethods, currentClass.getDeclaredMethods());
 
 			// we also need to look for interface methods -
 			// because the class may be abstract
+			// 生成类实现接口方法的方法签名，并放入uniqueMethods
 			Class<?>[] interfaces = currentClass.getInterfaces();
 			for (Class<?> anInterface : interfaces) {
 				addUniqueMethods(uniqueMethods, anInterface.getMethods());
@@ -286,16 +302,23 @@ public class Reflector {
 
 		Collection<Method> methods = uniqueMethods.values();
 
-		return methods.toArray(new Method[ 0 ]);
+		return methods.toArray(new Method[0]);
 	}
 
 	private void addUniqueMethods(Map<String, Method> uniqueMethods, Method[] methods) {
 		for (Method currentMethod : methods) {
+			/**
+			 * isBridge判断是否是桥接方法，此处只处理非桥接方法
+			 *
+			 * 桥接方法：桥接方法是 JDK1.5 引入泛型后，为了使泛型方法生成的字节码与之前版本的字节码兼容，由编译器自动生成的方法。
+			 */
 			if (!currentMethod.isBridge()) {
+				// 生成方法签名
 				String signature = getSignature(currentMethod);
 				// check to see if the method is already known
 				// if it is known, then an extended class must have
 				// overridden a method
+				// 将方法签名和对应的方法对象放入map
 				if (!uniqueMethods.containsKey(signature)) {
 					uniqueMethods.put(signature, currentMethod);
 				}
@@ -303,6 +326,10 @@ public class Reflector {
 		}
 	}
 
+	/**
+	 * 拼接方法签名，例如方法：public int cal(int a, int b){}
+	 * 返回：int#cal:a,b
+	 */
 	private String getSignature(Method method) {
 		StringBuilder sb = new StringBuilder();
 		Class<?> returnType = method.getReturnType();
@@ -310,7 +337,7 @@ public class Reflector {
 		sb.append(method.getName());
 		Class<?>[] parameters = method.getParameterTypes();
 		for (int i = 0; i < parameters.length; i++) {
-			sb.append(i == 0 ? ':' : ',').append(parameters[ i ].getName());
+			sb.append(i == 0 ? ':' : ',').append(parameters[i].getName());
 		}
 		return sb.toString();
 	}
@@ -441,6 +468,16 @@ public class Reflector {
 
 	/**
 	 * Class.isRecord() alternative for Java 15 and older.
+	 * <p>
+	 * 判断一个类是否是Record类，Record类的属性不能被修改
+	 * Class.isRecord
+	 * <p>
+	 * 在应用软件开发中，编程人员经常会针对底层数据，进行对数据的构造器、访问方法（getters）、覆盖方法equals、覆盖方法hashCode、以及覆盖方法toString进行基础和重复性的编程。
+	 * 而使用Record类，程序中则可省去这些代码，而由支持Record的编译器自动生成。这不但提高了编程效率，而且提高了代码的可靠性。
+	 * record是jdk14中出现的新的关键字，在14/15中以preview（预览）版出现，Record的出现一定程度上可以替代lombok库。（有待更深入的研究）
+	 * 使用recode关键字定义一个类就是这么简单，不需要定义属性、get&set方法、toString方法、equals方法、hashCode方法：
+	 * public record MyRecord(String name, Integer age) {}
+	 * </p>
 	 */
 	private static boolean isRecord(Class<?> clazz) {
 		try {
@@ -450,10 +487,23 @@ public class Reflector {
 		}
 	}
 
+	/**
+	 * MethodHandle是1.7之后加入的，他主要用来定义一个方法的句柄，类似反射中的Method类
+	 * 同样是执行目标方法，MethodHandle性能要比Method快很多
+	 * <p>
+	 * 关于MethodHandle参考：<a href="https://zhuanlan.zhihu.com/p/524591401">...</a>
+	 * 1.为什么MethodHandle.invoke()不用进行方法修饰符权限检查？反射表示不服
+	 * 2.为什么MethodHandle声明时要被final修饰，否则性能会大大打折扣？
+	 * 3.为什么MethodHandle.invoke()明明是native方法为什么还可以被JIT内联优化？反射表示不服
+	 * 4.MethodHandle.invoke()方法的调用栈链路是什么？
+	 */
 	private static MethodHandle getIsRecordMethodHandle() {
+		// 1.创建MethodHandles.Lookup
 		MethodHandles.Lookup lookup = MethodHandles.lookup();
+		// 2.指定 返回值类型 和 参数类型 ，定义目标方法的MethodType；此处定义的是Class.isRecord方法的返回值类型
 		MethodType mt = MethodType.methodType(boolean.class);
 		try {
+			// 3.通过MethodHandles.Lookup指定方法定义类、方法名称以及MethodType 来查找对应的方法句柄
 			return lookup.findVirtual(Class.class, "isRecord", mt);
 		} catch (NoSuchMethodException | IllegalAccessException e) {
 			return null;
