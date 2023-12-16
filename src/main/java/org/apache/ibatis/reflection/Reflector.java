@@ -50,30 +50,46 @@ public class Reflector {
 	private final Class<?> type;
 	private final String[] readablePropertyNames;
 	private final String[] writablePropertyNames;
+	// set方法对应的字段名称和SetFieldInvoker对象的k-v键值对
 	private final Map<String, Invoker> setMethods = new HashMap<>();
+	// get方法对应的字段名称和SetFieldInvoker对象的k-v键值对
 	private final Map<String, Invoker> getMethods = new HashMap<>();
+	// set方法对应的字段名称和字段类型的k-v键值对
 	private final Map<String, Class<?>> setTypes = new HashMap<>();
+	// set方法对应的字段名称和字段类型的k-v键值对
 	private final Map<String, Class<?>> getTypes = new HashMap<>();
 	/**
 	 * 持有给定类type的默认构造函数
 	 */
 	private Constructor<?> defaultConstructor;
 
+	/**
+	 * 集合所有get和set方法解析出来的属性名放入同一个map中做去重，其中key是大写的属性名、value是小写的属性名
+	 */
 	private final Map<String, String> caseInsensitivePropertyMap = new HashMap<>();
 
 	public Reflector(Class<?> clazz) {
 		type = clazz;
 		// 将clazz对象的默认构造函数赋值给defaultConstructor
 		addDefaultConstructor(clazz);
+		// 读取类所有的方法，包括所有父类和所有接口的方法，
+		// 其中会过滤掉方法名、方法返回值类型、方法参数个数和类型相同的方法
 		Method[] classMethods = getClassMethods(clazz);
+		// 判断type类是否是record类，record类是jdk14后加入的
 		if (isRecord(type)) {
+			// 设置get方法k-v键值对
 			addRecordGetMethods(classMethods);
 		} else {
+			// 遍历所有的methods，找到属于get的方法，将属性名和唯一一个get方法放入getMethods和getTypes中
 			addGetMethods(classMethods);
+			// 遍历所有的methods，找到属于set的方法，将属性名和唯一一个set方法放入setMethods和setTypes中
 			addSetMethods(classMethods);
+			// 递归设置type类和type类父类的非final和非static的set方法和get方法
 			addFields(clazz);
 		}
+		// get方法对应的属性名数组
 		readablePropertyNames = getMethods.keySet().toArray(new String[0]);
+		// set方法对应属性名数组
 		writablePropertyNames = setMethods.keySet().toArray(new String[0]);
 		for (String propName : readablePropertyNames) {
 			caseInsensitivePropertyMap.put(propName.toUpperCase(Locale.ENGLISH), propName);
@@ -83,11 +99,15 @@ public class Reflector {
 		}
 	}
 
+	// 过滤所有方法参数为0的方法，交给addGetMethod方法
 	private void addRecordGetMethods(Method[] methods) {
 		Arrays.stream(methods).filter(m -> m.getParameterTypes().length == 0)
 				.forEach(m -> addGetMethod(m.getName(), m, false));
 	}
 
+	/**
+	 * 获取clazz对象的无参构造起，并赋值给defaultConstructor
+	 */
 	private void addDefaultConstructor(Class<?> clazz) {
 		Constructor<?>[] constructors = clazz.getDeclaredConstructors();
 		Arrays.stream(constructors).filter(constructor -> constructor.getParameterTypes().length == 0).findAny()
@@ -95,29 +115,44 @@ public class Reflector {
 	}
 
 	private void addGetMethods(Method[] methods) {
+		// 属性名对应的get方法集合
 		Map<String, List<Method>> conflictingGetters = new HashMap<>();
 		Arrays.stream(methods).filter(m -> m.getParameterTypes().length == 0 && PropertyNamer.isGetter(m.getName()))
 				.forEach(m -> addMethodConflict(conflictingGetters, PropertyNamer.methodToProperty(m.getName()), m));
 		resolveGetterConflicts(conflictingGetters);
 	}
 
+	/**
+	 * 在List<Method>方法中找到一个get方法，放到getMethods和getTypes里面
+	 */
 	private void resolveGetterConflicts(Map<String, List<Method>> conflictingGetters) {
 		for (Entry<String, List<Method>> entry : conflictingGetters.entrySet()) {
 			Method winner = null;
+			// 属性名
 			String propName = entry.getKey();
+			// 该字段用于标识是否存在定义不清楚的get方法，
+			// 即出现多个方法名、返回值类型相同（且不是boolean类型）的get方法
+			// 用于后续执行get方法时，抛出ReflectionException异常
 			boolean isAmbiguous = false;
+			// 循环的目的是找出get方法返回值，如果返回值存在父子关系则返回子类
 			for (Method candidate : entry.getValue()) {
+				// 当候胜出者为null时将第一个候选人当做胜出者
 				if (winner == null) {
 					winner = candidate;
 					continue;
 				}
+				// 暂定胜出者的方法返回值类型
 				Class<?> winnerType = winner.getReturnType();
+				// 当前候选人的方法返回值类型
 				Class<?> candidateType = candidate.getReturnType();
+				// 判断属性的相邻两个get方法的返回值是否相等
 				if (candidateType.equals(winnerType)) {
+					// 返回值不是boolean类型直接返回
 					if (!boolean.class.equals(candidateType)) {
 						isAmbiguous = true;
 						break;
 					}
+					// 是boolean类型，返回is开头的getter方法
 					if (candidate.getName().startsWith("is")) {
 						winner = candidate;
 					}
@@ -126,6 +161,7 @@ public class Reflector {
 				} else if (winnerType.isAssignableFrom(candidateType)) {
 					winner = candidate;
 				} else {
+					// 如果两个get方法的返回值类型不一样则返回数组第一个
 					isAmbiguous = true;
 					break;
 				}
@@ -139,6 +175,7 @@ public class Reflector {
 				"Illegal overloaded getter method with ambiguous type for property ''{0}'' in class ''{1}''. This breaks the JavaBeans specification and can cause unpredictable results.",
 				name, method.getDeclaringClass().getName())) : new MethodInvoker(method);
 		getMethods.put(name, invoker);
+		// get方法返回值类型
 		Type returnType = TypeParameterResolver.resolveReturnType(method, type);
 		getTypes.put(name, typeToClass(returnType));
 	}
@@ -151,6 +188,7 @@ public class Reflector {
 	}
 
 	private void addMethodConflict(Map<String, List<Method>> conflictingMethods, String name, Method method) {
+		// 验证属性名不是以$开头并且不是“serialVersionUID”并且不是“class”
 		if (isValidPropertyName(name)) {
 			List<Method> list = MapUtil.computeIfAbsent(conflictingMethods, name, k -> new ArrayList<>());
 			list.add(method);
@@ -254,6 +292,7 @@ public class Reflector {
 	}
 
 	private void addSetField(Field field) {
+		// 验证属性名不是以$开头并且不是“serialVersionUID”并且不是“class”
 		if (isValidPropertyName(field.getName())) {
 			setMethods.put(field.getName(), new SetFieldInvoker(field));
 			Type fieldType = TypeParameterResolver.resolveFieldType(field, type);
@@ -262,6 +301,7 @@ public class Reflector {
 	}
 
 	private void addGetField(Field field) {
+		// 验证属性名不是以$开头并且不是“serialVersionUID”并且不是“class”
 		if (isValidPropertyName(field.getName())) {
 			getMethods.put(field.getName(), new GetFieldInvoker(field));
 			Type fieldType = TypeParameterResolver.resolveFieldType(field, type);
@@ -281,10 +321,13 @@ public class Reflector {
 	 * @return An array containing all methods in this class
 	 * <p>
 	 * 用于获取类直接定义的方法、类接口定义的方法、父类定义的方法数组
+	 * 会过滤掉方法名、方法返回值类型、方法参数个数和返回值相同的方法
 	 */
 	private Method[] getClassMethods(Class<?> clazz) {
+		// uniqueMethods过滤掉了方法名、方法返回值类型、方法参数个数和返回值相同的方法。
 		Map<String, Method> uniqueMethods = new HashMap<>();
 		Class<?> currentClass = clazz;
+		// 过滤掉object对象的方法
 		while (currentClass != null && currentClass != Object.class) {
 			// 生成类所有方法的方法签名，并放入uniqueMethods
 			addUniqueMethods(uniqueMethods, currentClass.getDeclaredMethods());

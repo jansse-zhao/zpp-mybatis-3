@@ -15,44 +15,45 @@
  */
 package org.apache.ibatis.reflection.invoker;
 
+import org.apache.ibatis.reflection.Reflector;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-
-import org.apache.ibatis.reflection.Reflector;
 
 /**
  * @author Clinton Begin
  */
 public class MethodInvoker implements Invoker {
 
-  private final Class<?> type;
-  private final Method method;
+	// set方法参数类型或者get方法返回值类型
+	private final Class<?> type;
+	private final Method method;
 
-  public MethodInvoker(Method method) {
-    this.method = method;
+	public MethodInvoker(Method method) {
+		this.method = method;
 
-    if (method.getParameterTypes().length == 1) {
-      type = method.getParameterTypes()[0];
-    } else {
-      type = method.getReturnType();
-    }
-  }
+		if (method.getParameterTypes().length == 1) {
+			type = method.getParameterTypes()[0];
+		} else {
+			type = method.getReturnType();
+		}
+	}
 
-  @Override
-  public Object invoke(Object target, Object[] args) throws IllegalAccessException, InvocationTargetException {
-    try {
-      return method.invoke(target, args);
-    } catch (IllegalAccessException e) {
-      if (Reflector.canControlMemberAccessible()) {
-        method.setAccessible(true);
-        return method.invoke(target, args);
-      }
-      throw e;
-    }
-  }
+	@Override
+	public Object invoke(Object target, Object[] args) throws IllegalAccessException, InvocationTargetException {
+		try {
+			return method.invoke(target, args);
+		} catch (IllegalAccessException e) {
+			if (Reflector.canControlMemberAccessible()) {
+				method.setAccessible(true);
+				return method.invoke(target, args);
+			}
+			throw e;
+		}
+	}
 
-  @Override
-  public Class<?> getType() {
-    return type;
-  }
+	@Override
+	public Class<?> getType() {
+		return type;
+	}
 }
