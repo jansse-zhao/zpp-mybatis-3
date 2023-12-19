@@ -21,11 +21,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * @author zpp
- * @version 1.0.0
- * @ClassName DefaultReflectorFactory.java
- * @Description 反射器工厂只有两个实现类，你是其中一个，另一个继承了你，没啥用，没有具体实现
- * @createTime 23/12/16 23:05
+ * 反射器工厂只有两个实现类，你是其中一个，另一个继承了你，没啥用，没有具体实现
+ * 反射器工厂的默认实现，内部会维护一个Map类型的缓存，用户可以指定是否使用内部缓存获取Reflector的实例对象
  */
 
 public class DefaultReflectorFactory implements ReflectorFactory {

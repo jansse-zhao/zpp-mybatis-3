@@ -20,24 +20,25 @@ import java.lang.reflect.UndeclaredThrowableException;
 
 /**
  * @author Clinton Begin
+ * 异常解析工具，主要解析反射相关异常
  */
 public class ExceptionUtil {
 
-  private ExceptionUtil() {
-    // Prevent Instantiation
-  }
+	private ExceptionUtil() {
+		// Prevent Instantiation
+	}
 
-  public static Throwable unwrapThrowable(Throwable wrapped) {
-    Throwable unwrapped = wrapped;
-    while (true) {
-      if (unwrapped instanceof InvocationTargetException) {
-        unwrapped = ((InvocationTargetException) unwrapped).getTargetException();
-      } else if (unwrapped instanceof UndeclaredThrowableException) {
-        unwrapped = ((UndeclaredThrowableException) unwrapped).getUndeclaredThrowable();
-      } else {
-        return unwrapped;
-      }
-    }
-  }
+	public static Throwable unwrapThrowable(Throwable wrapped) {
+		Throwable unwrapped = wrapped;
+		while (true) {
+			if (unwrapped instanceof InvocationTargetException) {
+				unwrapped = ((InvocationTargetException) unwrapped).getTargetException();
+			} else if (unwrapped instanceof UndeclaredThrowableException) {
+				unwrapped = ((UndeclaredThrowableException) unwrapped).getUndeclaredThrowable();
+			} else {
+				return unwrapped;
+			}
+		}
+	}
 
 }

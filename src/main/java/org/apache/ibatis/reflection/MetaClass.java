@@ -38,6 +38,7 @@ public class MetaClass {
 
 	private MetaClass(Class<?> type, ReflectorFactory reflectorFactory) {
 		this.reflectorFactory = reflectorFactory;
+		// 将一个类包装成一个Reflector对象
 		this.reflector = reflectorFactory.findForClass(type);
 	}
 
@@ -46,6 +47,7 @@ public class MetaClass {
 	}
 
 	public MetaClass metaClassForProperty(String name) {
+		// 获取指定类的属性类型MetaClass对象
 		Class<?> propType = reflector.getGetterType(name);
 		return MetaClass.forClass(propType, reflectorFactory);
 	}

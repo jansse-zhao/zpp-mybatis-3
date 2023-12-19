@@ -24,18 +24,21 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class ParamNameUtil {
-  public static List<String> getParamNames(Method method) {
-    return getParameterNames(method);
-  }
+	public static List<String> getParamNames(Method method) {
+		return getParameterNames(method);
+	}
 
-  public static List<String> getParamNames(Constructor<?> constructor) {
-    return getParameterNames(constructor);
-  }
+	public static List<String> getParamNames(Constructor<?> constructor) {
+		return getParameterNames(constructor);
+	}
 
-  private static List<String> getParameterNames(Executable executable) {
-    return Arrays.stream(executable.getParameters()).map(Parameter::getName).collect(Collectors.toList());
-  }
+	/**
+	 * 获取方法或构造函数参数名称
+	 */
+	private static List<String> getParameterNames(Executable executable) {
+		return Arrays.stream(executable.getParameters()).map(Parameter::getName).collect(Collectors.toList());
+	}
 
-  private ParamNameUtil() {
-  }
+	private ParamNameUtil() {
+	}
 }

@@ -48,7 +48,9 @@ public class Reflector {
 	 * 构造器对象持有的指定类对象
 	 */
 	private final Class<?> type;
+	// get方法对应的属性名数组
 	private final String[] readablePropertyNames;
+	// set方法对应属性名数组
 	private final String[] writablePropertyNames;
 	// set方法对应的字段名称和SetFieldInvoker对象的k-v键值对
 	private final Map<String, Invoker> setMethods = new HashMap<>();
@@ -56,7 +58,7 @@ public class Reflector {
 	private final Map<String, Invoker> getMethods = new HashMap<>();
 	// set方法对应的字段名称和字段类型的k-v键值对
 	private final Map<String, Class<?>> setTypes = new HashMap<>();
-	// set方法对应的字段名称和字段类型的k-v键值对
+	// get方法对应的字段名称和字段类型的k-v键值对
 	private final Map<String, Class<?>> getTypes = new HashMap<>();
 	/**
 	 * 持有给定类type的默认构造函数

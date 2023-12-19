@@ -19,59 +19,81 @@ import java.util.Iterator;
 
 /**
  * @author Clinton Begin
+ * 一个属性字段分词器
  */
 public class PropertyTokenizer implements Iterator<PropertyTokenizer> {
-  private String name;
-  private final String indexedName;
-  private String index;
-  private final String children;
+	private String name;
+	private final String indexedName;
+	private String index;
+	private final String children;
 
-  public PropertyTokenizer(String fullname) {
-    int delim = fullname.indexOf('.');
-    if (delim > -1) {
-      name = fullname.substring(0, delim);
-      children = fullname.substring(delim + 1);
-    } else {
-      name = fullname;
-      children = null;
-    }
-    indexedName = name;
-    delim = name.indexOf('[');
-    if (delim > -1) {
-      index = name.substring(delim + 1, name.length() - 1);
-      name = name.substring(0, delim);
-    }
-  }
+	/**
+	 * <一>
+	 * fullName = "jansse.test"
+	 * <p>
+	 * name = "jansse"
+	 * children = "test"
+	 * indexedName = "jansse"
+	 * index = null
+	 * <二>
+	 * fullName = "jansse"
+	 * name = "jansse"
+	 * children = null
+	 * indexedName = "jansse"
+	 * index = null
+	 * <三>
+	 * fullName = "jan[sse"
+	 * name = "jansse"
+	 * children = null
+	 * indexedName = "jan[sse"
+	 * index = ss
+	 */
+	public PropertyTokenizer(String fullName) {
+		int delim = fullName.indexOf('.');
+		if (delim > -1) {
+			name = fullName.substring(0, delim);
+			children = fullName.substring(delim + 1);
+		} else {
+			name = fullName;
+			children = null;
+		}
+		indexedName = name;
+		delim = name.indexOf('[');
+		if (delim > -1) {
+			index = name.substring(delim + 1, name.length() - 1);
+			name = name.substring(0, delim);
+		}
+	}
 
-  public String getName() {
-    return name;
-  }
+	public String getName() {
+		return name;
+	}
 
-  public String getIndex() {
-    return index;
-  }
+	public String getIndex() {
+		return index;
+	}
 
-  public String getIndexedName() {
-    return indexedName;
-  }
+	public String getIndexedName() {
+		return indexedName;
+	}
 
-  public String getChildren() {
-    return children;
-  }
+	public String getChildren() {
+		return children;
+	}
 
-  @Override
-  public boolean hasNext() {
-    return children != null;
-  }
+	@Override
+	public boolean hasNext() {
+		return children != null;
+	}
 
-  @Override
-  public PropertyTokenizer next() {
-    return new PropertyTokenizer(children);
-  }
+	@Override
+	public PropertyTokenizer next() {
+		return new PropertyTokenizer(children);
+	}
 
-  @Override
-  public void remove() {
-    throw new UnsupportedOperationException(
-        "Remove is not supported, as it has no meaning in the context of properties.");
-  }
+	@Override
+	public void remove() {
+		throw new UnsupportedOperationException(
+				"Remove is not supported, as it has no meaning in the context of properties.");
+	}
 }

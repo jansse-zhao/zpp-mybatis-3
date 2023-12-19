@@ -15,40 +15,43 @@
  */
 package org.apache.ibatis.reflection.property;
 
-import java.lang.reflect.Field;
-
 import org.apache.ibatis.reflection.Reflector;
+
+import java.lang.reflect.Field;
 
 /**
  * @author Clinton Begin
+ * <p>
+ * 将source对象赋值到dest对象中，深copy
  */
 public final class PropertyCopier {
 
-  private PropertyCopier() {
-    // Prevent Instantiation of Static Class
-  }
+	private PropertyCopier() {
+		// Prevent Instantiation of Static Class
+	}
 
-  public static void copyBeanProperties(Class<?> type, Object sourceBean, Object destinationBean) {
-    Class<?> parent = type;
-    while (parent != null) {
-      final Field[] fields = parent.getDeclaredFields();
-      for (Field field : fields) {
-        try {
-          try {
-            field.set(destinationBean, field.get(sourceBean));
-          } catch (IllegalAccessException e) {
-            if (!Reflector.canControlMemberAccessible()) {
-              throw e;
-            }
-            field.setAccessible(true);
-            field.set(destinationBean, field.get(sourceBean));
-          }
-        } catch (Exception e) {
-          // Nothing useful to do, will only fail on final fields, which will be ignored.
-        }
-      }
-      parent = parent.getSuperclass();
-    }
-  }
+	public static void copyBeanProperties(Class<?> type, Object sourceBean, Object destinationBean) {
+		Class<?> parent = type;
+		while (parent != null) {
+			final Field[] fields = parent.getDeclaredFields();
+			for (Field field : fields) {
+				try {
+					try {
+						field.set(destinationBean, field.get(sourceBean));
+					} catch (IllegalAccessException e) {
+						// 如果不支持访问字段则抛出异常，否则设置字段可以访问
+						if (!Reflector.canControlMemberAccessible()) {
+							throw e;
+						}
+						field.setAccessible(true);
+						field.set(destinationBean, field.get(sourceBean));
+					}
+				} catch (Exception e) {
+					// Nothing useful to do, will only fail on final fields, which will be ignored.
+				}
+			}
+			parent = parent.getSuperclass();
+		}
+	}
 
 }

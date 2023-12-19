@@ -25,57 +25,50 @@ import java.util.Properties;
  */
 public interface ObjectFactory {
 
-  /**
-   * Sets configuration properties.
-   *
-   * @param properties
-   *          configuration properties
-   */
-  default void setProperties(Properties properties) {
-    // NOP
-  }
+	/**
+	 * Sets configuration properties.
+	 *
+	 * @param properties configuration properties
+	 */
+	default void setProperties(Properties properties) {
+		// NOP
+	}
 
-  /**
-   * Creates a new object with default constructor.
-   *
-   * @param <T>
-   *          the generic type
-   * @param type
-   *          Object type
-   *
-   * @return the t
-   */
-  <T> T create(Class<T> type);
+	/**
+	 * Creates a new object with default constructor.
+	 * <p>
+	 * 通过默认构造函数创建一个新的对象
+	 *
+	 * @param <T>  the generic type
+	 * @param type Object type
+	 * @return the t
+	 */
+	<T> T create(Class<T> type);
 
-  /**
-   * Creates a new object with the specified constructor and params.
-   *
-   * @param <T>
-   *          the generic type
-   * @param type
-   *          Object type
-   * @param constructorArgTypes
-   *          Constructor argument types
-   * @param constructorArgs
-   *          Constructor argument values
-   *
-   * @return the t
-   */
-  <T> T create(Class<T> type, List<Class<?>> constructorArgTypes, List<Object> constructorArgs);
+	/**
+	 * Creates a new object with the specified constructor and params.
+	 * <p>
+	 * 通过指定的构造函数和参数创建一个新的对象
+	 *
+	 * @param <T>                 the generic type
+	 * @param type                Object type
+	 * @param constructorArgTypes Constructor argument types
+	 * @param constructorArgs     Constructor argument values
+	 * @return the t
+	 */
+	<T> T create(Class<T> type, List<Class<?>> constructorArgTypes, List<Object> constructorArgs);
 
-  /**
-   * Returns true if this object can have a set of other objects. It's main purpose is to support
-   * non-java.util.Collection objects like Scala collections.
-   *
-   * @param <T>
-   *          the generic type
-   * @param type
-   *          Object type
-   *
-   * @return whether it is a collection or not
-   *
-   * @since 3.1.0
-   */
-  <T> boolean isCollection(Class<T> type);
+	/**
+	 * 如果此对象可以有一组其他对象，则返回true。它的主要目的是支持
+	 * 非 java.util.collection对象，比如Scala集合。
+	 * <p>
+	 * 判断是否是类型
+	 *
+	 * @param <T>  the generic type
+	 * @param type Object type
+	 * @return whether it is a collection or not
+	 * @since 3.1.0
+	 */
+	<T> boolean isCollection(Class<T> type);
 
 }
