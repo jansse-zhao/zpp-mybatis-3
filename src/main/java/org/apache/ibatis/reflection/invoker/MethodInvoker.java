@@ -27,6 +27,7 @@ public class MethodInvoker implements Invoker {
 
 	// set方法参数类型或者get方法返回值类型
 	private final Class<?> type;
+	// 需要执行的方法
 	private final Method method;
 
 	public MethodInvoker(Method method) {

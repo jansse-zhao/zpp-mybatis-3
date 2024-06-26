@@ -19,11 +19,13 @@ import org.apache.ibatis.reflection.MetaObject;
 
 /**
  * @author Clinton Begin
+ * 用户自定义对象包装器工厂实现
+ * 系统提供了一个<code>DefaultObjectWrapperFactory<code/>，但是是个异常实现
  */
 public interface ObjectWrapperFactory {
 
-  boolean hasWrapperFor(Object object);
+	boolean hasWrapperFor(Object object);
 
-  ObjectWrapper getWrapperFor(MetaObject metaObject, Object object);
+	ObjectWrapper getWrapperFor(MetaObject metaObject, Object object);
 
 }

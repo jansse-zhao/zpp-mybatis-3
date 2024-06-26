@@ -15,21 +15,25 @@
  */
 package org.apache.ibatis.reflection.invoker;
 
+import org.apache.ibatis.reflection.ReflectionException;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.apache.ibatis.reflection.ReflectionException;
-
+/**
+ * @author zpp
+ * 无效方法调用，直接抛出反射异常
+ */
 public class AmbiguousMethodInvoker extends MethodInvoker {
-  private final String exceptionMessage;
+	private final String exceptionMessage;
 
-  public AmbiguousMethodInvoker(Method method, String exceptionMessage) {
-    super(method);
-    this.exceptionMessage = exceptionMessage;
-  }
+	public AmbiguousMethodInvoker(Method method, String exceptionMessage) {
+		super(method);
+		this.exceptionMessage = exceptionMessage;
+	}
 
-  @Override
-  public Object invoke(Object target, Object[] args) throws IllegalAccessException, InvocationTargetException {
-    throw new ReflectionException(exceptionMessage);
-  }
+	@Override
+	public Object invoke(Object target, Object[] args) throws IllegalAccessException, InvocationTargetException {
+		throw new ReflectionException(exceptionMessage);
+	}
 }

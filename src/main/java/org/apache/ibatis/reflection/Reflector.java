@@ -54,7 +54,7 @@ public class Reflector {
 	private final String[] writablePropertyNames;
 	// set方法对应的字段名称和SetFieldInvoker对象的k-v键值对
 	private final Map<String, Invoker> setMethods = new HashMap<>();
-	// get方法对应的字段名称和SetFieldInvoker对象的k-v键值对
+	// get方法对应的字段名称和GetFieldInvoker对象的k-v键值对
 	private final Map<String, Invoker> getMethods = new HashMap<>();
 	// set方法对应的字段名称和字段类型的k-v键值对
 	private final Map<String, Class<?>> setTypes = new HashMap<>();
